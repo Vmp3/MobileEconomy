@@ -44,7 +44,7 @@ func main() {
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "host=localhost user=postgres password=postgres dbname=password_app port=5432 sslmode=disable"
+		dbURL = "host=localhost user=postgres password=postgres dbname=financial_app port=5432 sslmode=disable"
 	}
 
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
@@ -52,13 +52,17 @@ func main() {
 		log.Fatalf("Falha ao conectar ao banco de dados: %v", err)
 	}
 
-	if err := db.AutoMigrate(&types.User{}); err != nil {
+	if err := db.AutoMigrate(&types.User{}, &types.Limite{}); err != nil {
 		log.Fatalf("Falha ao migrar modelos: %v", err)
 	}
 
 	authDAL := dal.NewAuthDAL(db)
 	authService := services.NewAuthService(authDAL)
 	authController := controllers.NewAuthController(authService)
+
+	limiteDAL := dal.NewLimiteDAL(db)
+	limiteService := services.NewLimiteService(limiteDAL)
+	limiteController := controllers.NewLimiteController(limiteService)
 
 	app := fiber.New()
 
@@ -70,6 +74,7 @@ func main() {
 	}))
 
 	routes.SetupAuthRoutes(app, authController)
+	routes.SetupLimiteRoutes(app, limiteController)
 
 	port := os.Getenv("PORT")
 	if port == "" {
