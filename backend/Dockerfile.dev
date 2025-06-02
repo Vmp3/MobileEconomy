@@ -1,0 +1,26 @@
+FROM golang:1.24-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache openssl
+
+RUN go install github.com/air-verse/air@latest
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+RUN echo '#!/bin/sh' > /usr/local/bin/init.sh && \
+    echo 'if [ -z "$JWT_SECRET" ]; then' >> /usr/local/bin/init.sh && \
+    echo '    export JWT_SECRET=$(openssl rand -hex 32)' >> /usr/local/bin/init.sh && \
+    echo 'fi' >> /usr/local/bin/init.sh && \
+    echo 'exec "$@"' >> /usr/local/bin/init.sh && \
+    chmod +x /usr/local/bin/init.sh
+
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/bin/init.sh"]
+
+CMD ["air", "-c", ".air.toml"] 
