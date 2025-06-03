@@ -52,7 +52,7 @@ func main() {
 		log.Fatalf("Falha ao conectar ao banco de dados: %v", err)
 	}
 
-	if err := db.AutoMigrate(&types.User{}, &types.Limite{}); err != nil {
+	if err := db.AutoMigrate(&types.User{}, &types.Limite{}, &types.Despesa{}); err != nil {
 		log.Fatalf("Falha ao migrar modelos: %v", err)
 	}
 
@@ -63,6 +63,10 @@ func main() {
 	limiteDAL := dal.NewLimiteDAL(db)
 	limiteService := services.NewLimiteService(limiteDAL)
 	limiteController := controllers.NewLimiteController(limiteService)
+
+	despesaDAL := dal.NewDespesaDAL(db)
+	despesaService := services.NewDespesaService(despesaDAL)
+	despesaController := controllers.NewDespesaController(despesaService)
 
 	app := fiber.New()
 
@@ -75,6 +79,7 @@ func main() {
 
 	routes.SetupAuthRoutes(app, authController)
 	routes.SetupLimiteRoutes(app, limiteController)
+	routes.SetupDespesaRoutes(app, despesaController)
 
 	port := os.Getenv("PORT")
 	if port == "" {

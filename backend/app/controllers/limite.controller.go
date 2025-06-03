@@ -52,7 +52,10 @@ func (c *LimiteController) GetLimiteByMonth(ctx *fiber.Ctx) error {
 
 	limite, err := c.limiteService.GetLimiteByMonth(userID, mesReferencia)
 	if err != nil {
-		return ctx.Status(404).JSON(fiber.Map{"error": err.Error()})
+		if err.Error() == "limite não encontrado para este mês" {
+			return ctx.Status(204).JSON(fiber.Map{"message": "Nenhum limite encontrado para este mês"})
+		}
+		return ctx.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return ctx.JSON(limite)
@@ -65,6 +68,10 @@ func (c *LimiteController) GetLimitesByUser(ctx *fiber.Ctx) error {
 	limites, err := c.limiteService.GetLimitesByUser(userID)
 	if err != nil {
 		return ctx.Status(500).JSON(fiber.Map{"error": "Erro interno do servidor"})
+	}
+
+	if len(limites) == 0 {
+		return ctx.Status(204).JSON(fiber.Map{"message": "Nenhum limite encontrado"})
 	}
 
 	return ctx.JSON(limites)
@@ -94,7 +101,10 @@ func (c *LimiteController) UpdateLimite(ctx *fiber.Ctx) error {
 		return ctx.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return ctx.JSON(limite)
+	return ctx.Status(200).JSON(fiber.Map{
+		"message": "Limite atualizado com sucesso",
+		"data": limite,
+	})
 }
 
 // DELETE /api/limite/:id
@@ -111,5 +121,5 @@ func (c *LimiteController) DeleteLimite(ctx *fiber.Ctx) error {
 		return ctx.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return ctx.Status(204).Send(nil)
+	return ctx.Status(200).JSON(fiber.Map{"message": "Limite excluído com sucesso"})
 } 
