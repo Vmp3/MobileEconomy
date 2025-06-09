@@ -36,4 +36,13 @@ func (d *AuthDAL) GetUserByEmail(email string) (*types.User, error) {
 		return nil, result.Error
 	}
 	return &user, nil
+}
+
+func (d *AuthDAL) GetUserByID(id uint) (*types.User, error) {
+	var user types.User
+	result := d.DB.First(&user, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
 } 
