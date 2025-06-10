@@ -1,0 +1,85 @@
+// Utilitários para manipulação de datas
+
+// Converter data do formato brasileiro (DD/MM/AAAA) para formato ISO (AAAA-MM-DD)
+export const formatDateToISO = (brazilianDate) => {
+  if (!brazilianDate) return '';
+  
+  // Remove espaços e caracteres especiais
+  const cleanDate = brazilianDate.replace(/[^\d]/g, '');
+  
+  if (cleanDate.length !== 8) {
+    return '';
+  }
+  
+  // Extrai dia, mês e ano
+  const day = cleanDate.substring(0, 2);
+  const month = cleanDate.substring(2, 4);
+  const year = cleanDate.substring(4, 8);
+  
+  // Valida se é uma data válida
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() != year || date.getMonth() != month - 1 || date.getDate() != day) {
+    return '';
+  }
+  
+  return `${year}-${month}-${day}`;
+};
+
+// Converter data do formato ISO (AAAA-MM-DD) para formato brasileiro (DD/MM/AAAA)
+export const formatDateToBrazilian = (isoDate) => {
+  if (!isoDate) return '';
+  
+  const date = new Date(isoDate);
+  if (isNaN(date.getTime())) return '';
+  
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}/${month}/${year}`;
+};
+
+// Formatar input de data com máscara DD/MM/AAAA
+export const formatDateInput = (value) => {
+  // Remove tudo que não é número
+  const numbers = value.replace(/\D/g, '');
+  
+  // Aplica a máscara DD/MM/AAAA
+  let formatted = numbers;
+  if (numbers.length >= 3) {
+    formatted = numbers.substring(0, 2) + '/' + numbers.substring(2);
+  }
+  if (numbers.length >= 5) {
+    formatted = numbers.substring(0, 2) + '/' + numbers.substring(2, 4) + '/' + numbers.substring(4, 8);
+  }
+  
+  return formatted;
+};
+
+// Validar se data está no formato correto e é válida
+export const validateDate = (brazilianDate) => {
+  if (!brazilianDate) return false;
+  
+  const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  const match = brazilianDate.match(dateRegex);
+  
+  if (!match) return false;
+  
+  const day = parseInt(match[1], 10);
+  const month = parseInt(match[2], 10);
+  const year = parseInt(match[3], 10);
+  
+  // Verifica se é uma data válida
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && 
+         date.getMonth() === month - 1 && 
+         date.getDate() === day;
+};
+
+// Obter mês/ano atual no formato YYYY-MM
+export const getCurrentMonth = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+}; 

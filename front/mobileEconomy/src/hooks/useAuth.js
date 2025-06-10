@@ -1,31 +1,29 @@
 import { useState, useEffect } from 'react';
-import { serviceContainer } from '../services/ServiceContainer';
+import { authService } from '../services/authService';
 
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
 
-  // Injeção de dependência - obter serviço do container
-  const authService = serviceContainer.get('authService');
-
+  // Verificar autenticação ao inicializar o hook
   useEffect(() => {
     checkAuthStatus();
   }, []);
 
+  // Verificar status de autenticação
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
+      
       const authenticated = await authService.isAuthenticated();
       setIsAuthenticated(authenticated);
-
+      
       if (authenticated) {
-        // Em uma implementação real, você buscaria os dados do usuário do token
-        // Por enquanto, vou simular dados básicos
-        setUser({
-          nome: 'Usuário',
-          email: 'usuario@email.com',
-        });
+        const userData = await authService.getUser();
+        setUser(userData);
+      } else {
+        setUser(null);
       }
     } catch (error) {
       console.error('Erro ao verificar autenticação:', error);
@@ -36,47 +34,38 @@ export const useAuth = () => {
     }
   };
 
-  const login = async (email, senha) => {
+  // Fazer login
+  const login = async (credentials) => {
     try {
-      const response = await authService.login(email, senha);
-      setIsAuthenticated(true);
+      const result = await authService.signin(credentials);
       
-      // Simular dados do usuário baseado na resposta
-      if (response.user) {
-        setUser(response.user);
+      if (result.success) {
+        setIsAuthenticated(true);
+        setUser(result.data.user);
+        return { success: true, data: result.data };
       } else {
-        setUser({
-          nome: 'Usuário',
-          email: email,
-        });
+        return { success: false, error: result.error };
       }
-
-      return response;
     } catch (error) {
-      setIsAuthenticated(false);
-      setUser(null);
-      throw error;
+      console.error('Erro no login:', error);
+      return { success: false, error: 'Erro inesperado no login' };
     }
   };
 
+  // Fazer logout
   const logout = async () => {
     try {
       await authService.logout();
       setIsAuthenticated(false);
       setUser(null);
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-      throw error;
+      console.error('Erro no logout:', error);
     }
   };
 
-  const signup = async (userData) => {
-    try {
-      const response = await authService.signup(userData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+  // Atualizar dados do usuário
+  const updateUser = (userData) => {
+    setUser(userData);
   };
 
   return {
@@ -85,7 +74,7 @@ export const useAuth = () => {
     user,
     login,
     logout,
-    signup,
-    checkAuthStatus,
+    updateUser,
+    checkAuthStatus
   };
 }; 

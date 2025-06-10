@@ -1,33 +1,52 @@
 import { useState } from 'react';
-import { serviceContainer } from '../services/ServiceContainer';
-import { parseApiError, logError } from '../utils/errorHandler';
+import { authService } from '../services/authService';
 
 export const useLoginForm = (onSuccess) => {
   const [formData, setFormData] = useState({
     email: '',
-    senha: '',
+    senha: ''
   });
-  
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Injeção de dependência - obter serviço do container
-  const authService = serviceContainer.get('authService');
+  // Atualizar campo do formulário
+  const updateField = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    // Limpar erro do campo quando o usuário começar a digitar
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+
+    // Limpar erro geral
+    if (errors.general) {
+      setErrors(prev => ({
+        ...prev,
+        general: ''
+      }));
+    }
   };
 
+  // Validar formulário
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.email) {
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
       newErrors.email = 'Email é obrigatório';
-    } else if (!validateEmail(formData.email)) {
+    } else if (!emailRegex.test(formData.email.trim())) {
       newErrors.email = 'Email inválido';
     }
 
+    // Validar senha
     if (!formData.senha) {
       newErrors.senha = 'Senha é obrigatória';
     } else if (formData.senha.length < 6) {
@@ -38,52 +57,49 @@ export const useLoginForm = (onSuccess) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const updateField = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-
-    // Limpar erro do campo quando o usuário começar a digitar
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: '',
-      }));
-    }
-  };
-
+  // Submeter formulário
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
+
     try {
-      // Usar o formato exato do README: POST /api/auth/signin
-      // Request: { email: string, senha: string }
-      // Response: { token: string, user: object }
-      const response = await authService.login(formData.email, formData.senha);
-      
-      if (onSuccess) {
-        onSuccess(response);
+      // Preparar dados para envio
+      const credentials = {
+        email: formData.email.trim().toLowerCase(),
+        senha: formData.senha
+      };
+
+      const result = await authService.signin(credentials);
+
+      if (result.success) {
+        // Limpar formulário
+        setFormData({
+          email: '',
+          senha: ''
+        });
+        setErrors({});
+        
+        // Chamar callback de sucesso
+        if (onSuccess) {
+          onSuccess(result.data);
+        }
+      } else {
+        // Exibir erro
+        setErrors({
+          general: result.error
+        });
       }
     } catch (error) {
-      logError('LOGIN', error);
+      console.error('Erro inesperado no login:', error);
       setErrors({
-        general: parseApiError(error),
+        general: 'Erro inesperado. Tente novamente.'
       });
     } finally {
       setLoading(false);
     }
-  };
-
-  const clearForm = () => {
-    setFormData({
-      email: '',
-      senha: '',
-    });
-    setErrors({});
   };
 
   return {
@@ -91,7 +107,6 @@ export const useLoginForm = (onSuccess) => {
     errors,
     loading,
     updateField,
-    handleSubmit,
-    clearForm,
+    handleSubmit
   };
 }; 
