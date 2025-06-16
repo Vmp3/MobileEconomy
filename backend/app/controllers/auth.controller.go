@@ -109,3 +109,16 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 		"token": response.Token,
 	})
 }
+
+func (c *AuthController) GetUserProfile(ctx *fiber.Ctx) error {
+	userID := ctx.Locals("userID").(uint)
+	
+	profile, err := c.AuthService.GetUserProfile(userID)
+	if err != nil {
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	
+	return ctx.Status(fiber.StatusOK).JSON(profile)
+}

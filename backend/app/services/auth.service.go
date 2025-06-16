@@ -127,3 +127,17 @@ func (s *AuthService) generateJWT(user *types.User) (string, error) {
 
 	return token.SignedString([]byte(jwtSecret))
 }
+
+func (s *AuthService) GetUserProfile(userID uint) (*types.UserProfileResponse, error) {
+	user, err := s.AuthDAL.GetUserByID(userID)
+	if err != nil {
+		return nil, errors.New("usuário não encontrado")
+	}
+	
+	return &types.UserProfileResponse{
+		ID:             user.ID,
+		Nome:           user.Nome,
+		DataNascimento: user.DataNascimento,
+		Email:          user.Email,
+	}, nil
+}

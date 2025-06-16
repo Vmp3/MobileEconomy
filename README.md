@@ -80,6 +80,25 @@ Um aplicativo mobile para gestão financeira pessoal com controle de limites men
 }
 ```
 
+#### 👤 Buscar Perfil do Usuário
+**`GET /api/auth/profile`** - ✅ JWT obrigatório
+
+**Request:** Sem body
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "nome": "João Silva",
+  "email": "joao@email.com",
+  "dataNascimento": "1990-01-01"
+}
+```
+
+**Erros possíveis:**
+- `401` - Token de acesso inválido ou expirado
+- `404` - Usuário não encontrado
+
 ### 💰 Gestão de Limites Financeiros
 
 > **⚠️ Todas as rotas de limite requerem autenticação JWT**  

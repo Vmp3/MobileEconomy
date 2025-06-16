@@ -79,3 +79,10 @@ type AuthResponse struct {
 	Token string `json:"token"`
 	User  User   `json:"user"`
 }
+
+type UserProfileResponse struct {
+	ID             uint   `json:"id"`
+	Nome           string `json:"nome"`
+	DataNascimento Date   `json:"dataNascimento"`
+	Email          string `json:"email"`
+}
