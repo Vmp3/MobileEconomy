@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { authService } from '../services/authService';
 import { formatDateToISO, formatDateInput, validateDate } from '../utils/dateUtils';
 
-export const useSignupForm = (onSuccess) => {
+export const useSignupForm = (onSuccess, onError) => {
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -138,15 +138,27 @@ export const useSignupForm = (onSuccess) => {
         }
       } else {
         // Exibir erro
+        const errorMessage = result.error || 'Erro ao criar conta. Tente novamente.';
         setErrors({
-          general: result.error
+          general: errorMessage
         });
+        
+        // Chamar callback de erro
+        if (onError) {
+          onError({ message: errorMessage });
+        }
       }
     } catch (error) {
       console.error('Erro inesperado no signup:', error);
+      const errorMessage = error.message || 'Erro inesperado. Tente novamente.';
       setErrors({
-        general: 'Erro inesperado. Tente novamente.'
+        general: errorMessage
       });
+      
+      // Chamar callback de erro
+      if (onError) {
+        onError(error);
+      }
     } finally {
       setLoading(false);
     }

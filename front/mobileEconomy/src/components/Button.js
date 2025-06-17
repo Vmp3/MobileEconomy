@@ -33,13 +33,31 @@ const Button = ({
   const getTextStyle = () => {
     let baseStyle = [styles.text];
     
+    // Verificar se o style contém backgroundColor branco
+    const hasWhiteBackground = style && 
+      (style.backgroundColor === '#fff' || 
+       style.backgroundColor === '#ffffff' || 
+       style.backgroundColor === 'white');
+    
     if (variant === 'outline') {
       baseStyle.push(styles.textOutline);
+    } else if (hasWhiteBackground) {
+      baseStyle.push(styles.textDark);
     } else {
       baseStyle.push(styles.textDefault);
     }
     
     return baseStyle;
+  };
+
+  const getLoadingColor = () => {
+    // Verificar se o style contém backgroundColor branco
+    const hasWhiteBackground = style && 
+      (style.backgroundColor === '#fff' || 
+       style.backgroundColor === '#ffffff' || 
+       style.backgroundColor === 'white');
+    
+    return hasWhiteBackground ? '#4CAF50' : '#fff';
   };
 
   return (
@@ -51,7 +69,7 @@ const Button = ({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color="#fff" size="small" />
+        <ActivityIndicator color={getLoadingColor()} size="small" />
       ) : (
         <Text style={[...getTextStyle(), textStyle]}>{title}</Text>
       )}
@@ -99,6 +117,9 @@ const styles = StyleSheet.create({
   },
   textDefault: {
     color: '#fff',
+  },
+  textDark: {
+    color: '#4CAF50',
   },
   textOutline: {
     color: '#4CAF50',

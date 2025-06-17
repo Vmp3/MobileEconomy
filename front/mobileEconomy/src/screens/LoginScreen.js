@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,35 +7,45 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Input, Button } from '../components';
+import { Input, Button, Toast } from '../components';
 import { useLoginForm } from '../hooks/useLoginForm';
 
 const LoginScreen = ({ navigation }) => {
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
+
+  const showToast = (message, type = 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
+
   const { formData, errors, loading, updateField, handleSubmit } = useLoginForm(
     (response) => {
-      Alert.alert('Sucesso', 'Login realizado com sucesso!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            if (navigation) {
-              navigation.navigate('Home');
-            } else {
-              console.log('Login successful:', response);
-            }
-          },
-        },
-      ]);
+      showToast('Login realizado com sucesso!', 'success');
+      
+      // Redirecionar para Home após um pequeno delay para mostrar o toast
+      setTimeout(() => {
+        if (navigation) {
+          navigation.navigate('Main');
+        }
+      }, 1000);
+    },
+    (error) => {
+      showToast(error.message || 'Erro ao fazer login. Tente novamente.');
     }
   );
 
   const handleSignupPress = () => {
     if (navigation) {
       navigation.navigate('Signup');
-    } else {
-      console.log('Navigate to signup');
     }
   };
 
@@ -50,7 +60,7 @@ const LoginScreen = ({ navigation }) => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.formContainer}>
+        <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.title}>ENTRAR</Text>
           </View>
@@ -75,12 +85,6 @@ const LoginScreen = ({ navigation }) => {
               error={errors.senha}
             />
 
-            {errors.general && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{errors.general}</Text>
-              </View>
-            )}
-
             <Button
               title="Entrar"
               onPress={handleSubmit}
@@ -99,6 +103,13 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
+      
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={hideToast}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -111,11 +122,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
-  formContainer: {
+  content: {
+    flex: 1,
+    justifyContent: 'center',
     backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginVertical: 40,
     borderRadius: 16,
     paddingHorizontal: 32,
     paddingVertical: 48,
@@ -152,19 +165,6 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontSize: 14,
     fontWeight: '500',
-  },
-  errorContainer: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#ffebee',
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#e74c3c',
-  },
-  errorText: {
-    color: '#e74c3c',
-    fontSize: 14,
-    textAlign: 'center',
   },
 });
 

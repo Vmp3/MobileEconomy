@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { authService } from '../services/authService';
 
-export const useLoginForm = (onSuccess) => {
+export const useLoginForm = (onSuccess, onError) => {
   const [formData, setFormData] = useState({
     email: '',
     senha: ''
@@ -88,15 +88,27 @@ export const useLoginForm = (onSuccess) => {
         }
       } else {
         // Exibir erro
+        const errorMessage = result.error || 'Erro ao fazer login. Tente novamente.';
         setErrors({
-          general: result.error
+          general: errorMessage
         });
+        
+        // Chamar callback de erro
+        if (onError) {
+          onError({ message: errorMessage });
+        }
       }
     } catch (error) {
       console.error('Erro inesperado no login:', error);
+      const errorMessage = error.message || 'Erro inesperado. Tente novamente.';
       setErrors({
-        general: 'Erro inesperado. Tente novamente.'
+        general: errorMessage
       });
+      
+      // Chamar callback de erro
+      if (onError) {
+        onError(error);
+      }
     } finally {
       setLoading(false);
     }
