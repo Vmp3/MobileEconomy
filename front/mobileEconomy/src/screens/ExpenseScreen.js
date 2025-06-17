@@ -9,7 +9,7 @@ import {
   FlatList,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Input, Button, MonthSelector, LoadingCard, ErrorCard } from '../components';
+import { Input, Button, MonthSelector, LoadingCard, ErrorCard, Toast } from '../components';
 import { despesaService } from '../services/despesaService';
 import { getCurrentMonth, getMonthLabel, parseCurrencyInput, formatCurrency } from '../utils/dateUtils';
 
@@ -27,6 +27,19 @@ const ExpenseScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const [error, setError] = useState(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
+
+  const showToast = (message, type = 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
 
   useEffect(() => {
     loadDespesas();
@@ -42,10 +55,12 @@ const ExpenseScreen = ({ navigation }) => {
         setDespesas(result.data || []);
       } else {
         setError(result.error || 'Erro ao carregar despesas');
+        showToast(result.error || 'Erro ao carregar despesas', 'error');
       }
     } catch (error) {
       console.error('Erro ao carregar despesas:', error);
       setError('Erro de conexão. Verifique sua internet.');
+      showToast('Erro de conexão. Verifique sua internet.', 'error');
     } finally {
       setLoadingData(false);
     }
@@ -53,13 +68,13 @@ const ExpenseScreen = ({ navigation }) => {
 
   const handleSaveDespesa = async () => {
     if (!descricao.trim() || !valor.trim()) {
-      Alert.alert('Erro', 'Preencha todos os campos');
+      showToast('Preencha todos os campos', 'error');
       return;
     }
 
     const valorNumber = parseCurrencyInput(valor);
     if (valorNumber <= 0) {
-      Alert.alert('Erro', 'Valor deve ser um número positivo');
+      showToast('Valor deve ser um número positivo', 'error');
       return;
     }
 
@@ -72,7 +87,7 @@ const ExpenseScreen = ({ navigation }) => {
       });
 
       if (result.success) {
-        Alert.alert('Sucesso', 'Despesa salva com sucesso!');
+        showToast('Despesa salva com sucesso!', 'success');
         setDescricao('');
         setValor('');
         // Recarregar lista se estiver no mesmo mês
@@ -80,10 +95,10 @@ const ExpenseScreen = ({ navigation }) => {
           loadDespesas();
         }
       } else {
-        Alert.alert('Erro', result.error || 'Erro ao salvar despesa');
+        showToast(result.error || 'Erro ao salvar despesa', 'error');
       }
     } catch (error) {
-      Alert.alert('Erro', 'Erro ao salvar despesa');
+      showToast('Erro ao salvar despesa', 'error');
     } finally {
       setLoading(false);
     }
@@ -103,16 +118,16 @@ const ExpenseScreen = ({ navigation }) => {
               if (item.id) {
                 const result = await despesaService.deleteDespesa(item.id);
                 if (result.success) {
-                  Alert.alert('Sucesso', 'Despesa excluída com sucesso!');
+                  showToast('Despesa excluída com sucesso!', 'success');
                   loadDespesas();
                 } else {
-                  Alert.alert('Erro', result.error || 'Erro ao excluir despesa');
+                  showToast(result.error || 'Erro ao excluir despesa', 'error');
                 }
               } else {
-                Alert.alert('Erro', 'ID da despesa não encontrado. O backend precisa retornar IDs nas respostas.');
+                showToast('ID da despesa não encontrado. O backend precisa retornar IDs nas respostas.', 'error');
               }
             } catch (error) {
-              Alert.alert('Erro', 'Erro ao excluir despesa');
+              showToast('Erro ao excluir despesa', 'error');
             }
           },
         },
@@ -134,9 +149,9 @@ const ExpenseScreen = ({ navigation }) => {
           onPress={() => {
             if (item.id) {
               // Implementar edição quando o backend retornar IDs
-              Alert.alert('Info', 'Função de editar em desenvolvimento.');
+              showToast('Função de editar em desenvolvimento.', 'error');
             } else {
-              Alert.alert('Erro', 'ID da despesa não encontrado. O backend precisa retornar IDs nas respostas.');
+              showToast('ID da despesa não encontrado. O backend precisa retornar IDs nas respostas.', 'error');
             }
           }}
         >
@@ -256,6 +271,13 @@ const ExpenseScreen = ({ navigation }) => {
           setHistoryMonth(value);
           setHistoryMonthLabel(label);
         }}
+      />
+
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={hideToast}
       />
     </View>
   );

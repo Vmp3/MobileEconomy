@@ -82,7 +82,7 @@ export const useLoginForm = (onSuccess, onError) => {
         });
         setErrors({});
         
-        // Chamar callback de sucesso
+        // Chamar callback de sucesso imediatamente com os dados
         if (onSuccess) {
           onSuccess(result.data);
         }

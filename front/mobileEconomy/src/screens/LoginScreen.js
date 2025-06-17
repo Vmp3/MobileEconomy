@@ -34,7 +34,10 @@ const LoginScreen = ({ navigation }) => {
       // Redirecionar para Home após um pequeno delay para mostrar o toast
       setTimeout(() => {
         if (navigation) {
-          navigation.navigate('Main');
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Main' }],
+          });
         }
       }, 1000);
     },

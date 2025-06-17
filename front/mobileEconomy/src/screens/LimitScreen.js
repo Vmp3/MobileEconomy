@@ -9,7 +9,7 @@ import {
   FlatList,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Input, Button, MonthSelector, LoadingCard, ErrorCard } from '../components';
+import { Input, Button, MonthSelector, LoadingCard, ErrorCard, Toast } from '../components';
 import { limiteService } from '../services/limiteService';
 import { getCurrentMonth, getMonthLabel, parseCurrencyInput, formatCurrency } from '../utils/dateUtils';
 
@@ -29,6 +29,19 @@ const LimitScreen = ({ navigation }) => {
   const [error, setError] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
+
+  const showToast = (message, type = 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
 
   useEffect(() => {
     loadCurrentLimit();
@@ -73,11 +86,13 @@ const LimitScreen = ({ navigation }) => {
         setCurrentLimit(null);
         if (!result.error?.includes('encontrado')) {
           setError(result.error || 'Erro ao carregar limite');
+          showToast(result.error || 'Erro ao carregar limite', 'error');
         }
       }
     } catch (error) {
       console.error('Erro ao carregar limite atual:', error);
       setError('Erro de conexão. Verifique sua internet.');
+      showToast('Erro de conexão. Verifique sua internet.', 'error');
     } finally {
       setLoadingData(false);
     }
@@ -88,21 +103,24 @@ const LimitScreen = ({ navigation }) => {
       const result = await limiteService.getAllLimites();
       if (result.success) {
         setLimites(result.data || []);
+      } else {
+        showToast(result.error || 'Erro ao carregar histórico de limites', 'error');
       }
     } catch (error) {
       console.error('Erro ao carregar limites:', error);
+      showToast('Erro ao carregar histórico de limites', 'error');
     }
   };
 
   const handleSaveLimite = async () => {
     if (!valor.trim()) {
-      Alert.alert('Erro', 'Preencha o valor do limite');
+      showToast('Preencha o valor do limite', 'error');
       return;
     }
 
     const valorNumber = parseCurrencyInput(valor);
     if (valorNumber <= 0) {
-      Alert.alert('Erro', 'Valor deve ser um número positivo');
+      showToast('Valor deve ser um número positivo', 'error');
       return;
     }
 
@@ -140,18 +158,18 @@ const LimitScreen = ({ navigation }) => {
       }
 
       if (result.success) {
-        Alert.alert('Sucesso', 'Limite salvo com sucesso!');
+        showToast('Limite salvo com sucesso!', 'success');
         setValor('');
         setEditMode(false);
         setEditId(null);
         loadCurrentLimit();
         loadAllLimites();
       } else {
-        Alert.alert('Erro', result.error || 'Erro ao salvar limite');
+        showToast(result.error || 'Erro ao salvar limite', 'error');
       }
     } catch (error) {
       console.error('Erro completo ao salvar limite:', error);
-      Alert.alert('Erro', 'Erro ao salvar limite');
+      showToast('Erro ao salvar limite', 'error');
     } finally {
       setLoading(false);
     }
@@ -159,13 +177,13 @@ const LimitScreen = ({ navigation }) => {
 
   const handleDeleteLimite = async () => {
     if (!currentLimit) {
-      Alert.alert('Erro', 'Nenhum limite encontrado para excluir');
+      showToast('Nenhum limite encontrado para excluir', 'error');
       return;
     }
 
     // Verificar se o ID existe
     if (!currentLimit.id) {
-      Alert.alert('Erro', 'ID do limite não encontrado. Tente recarregar a página.');
+      showToast('ID do limite não encontrado. Tente recarregar a página.', 'error');
       console.error('Limite sem ID:', JSON.stringify(currentLimit));
       return;
     }
@@ -183,15 +201,15 @@ const LimitScreen = ({ navigation }) => {
               console.log('Excluindo limite com ID:', currentLimit.id);
               const result = await limiteService.deleteLimite(currentLimit.id);
               if (result.success) {
-                Alert.alert('Sucesso', 'Limite excluído com sucesso!');
+                showToast('Limite excluído com sucesso!', 'success');
                 setCurrentLimit(null);
                 loadAllLimites();
               } else {
-                Alert.alert('Erro', result.error || 'Erro ao excluir limite');
+                showToast(result.error || 'Erro ao excluir limite', 'error');
               }
             } catch (error) {
               console.error('Erro completo ao excluir limite:', error);
-              Alert.alert('Erro', 'Erro ao excluir limite');
+              showToast('Erro ao excluir limite', 'error');
             }
           },
         },
@@ -343,6 +361,13 @@ const LimitScreen = ({ navigation }) => {
           setConsultaMonth(value);
           setConsultaMonthLabel(label);
         }}
+      />
+
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={hideToast}
       />
     </View>
   );

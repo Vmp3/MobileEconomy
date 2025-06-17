@@ -3,8 +3,8 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
 const BottomNavigation = ({ activeScreen, onNavigate }) => {
   const tabs = [
-    { id: 'Home', icon: '👤', label: 'Home' },
-    { id: 'Profile', icon: '$', label: 'Profile' },
+    { id: 'Profile', icon: '👤', label: 'Profile' },
+    { id: 'Home', icon: '$', label: 'Home' },
     { id: 'Expense', icon: '+', label: 'Expense' },
     { id: 'Limit', icon: '⚙️', label: 'Limit' },
   ];

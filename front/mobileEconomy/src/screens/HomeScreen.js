@@ -8,12 +8,25 @@ import {
   Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Button } from '../components';
+import { Button, Toast } from '../components';
 import { useAuth } from '../hooks/useAuth';
 
 const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const { user, logout } = useAuth();
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
+
+  const showToast = (message, type = 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -30,12 +43,18 @@ const HomeScreen = ({ navigation }) => {
             setLoading(true);
             try {
               await logout();
-              if (navigation) {
-                navigation.navigate('Login');
-              }
+              showToast('Logout realizado com sucesso!', 'success');
+              setTimeout(() => {
+                if (navigation) {
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Login' }],
+                  });
+                }
+              }, 1000);
             } catch (error) {
               console.error('Erro ao fazer logout:', error);
-              Alert.alert('Erro', 'Erro ao fazer logout');
+              showToast('Erro ao fazer logout', 'error');
             } finally {
               setLoading(false);
             }
@@ -46,11 +65,11 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleNavigateToLimites = () => {
-    Alert.alert('Info', 'Funcionalidade de Limites em desenvolvimento');
+    navigation.navigate('Limit');
   };
 
   const handleNavigateToDespesas = () => {
-    Alert.alert('Info', 'Funcionalidade de Despesas em desenvolvimento');
+    navigation.navigate('Expense');
   };
 
   return (
@@ -124,6 +143,13 @@ const HomeScreen = ({ navigation }) => {
           style={styles.logoutButton}
         />
       </ScrollView>
+
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={hideToast}
+      />
     </View>
   );
 };
@@ -211,7 +237,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 16,
-    marginBottom: 30,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -225,12 +251,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 16,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   summaryLabel: {
     fontSize: 14,
@@ -238,14 +268,15 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#333',
   },
   summaryAvailable: {
     color: '#4CAF50',
   },
   logoutButton: {
-    marginTop: 20,
+    marginTop: 10,
+    borderColor: '#d32f2f',
   },
 });
 

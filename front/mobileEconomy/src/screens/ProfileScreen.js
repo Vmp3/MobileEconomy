@@ -7,7 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Button, LoadingCard, ErrorCard } from '../components';
+import { Button, LoadingCard, ErrorCard, Toast } from '../components';
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
 
@@ -16,6 +16,19 @@ const ProfileScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user, logout } = useAuth();
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
+
+  const showToast = (message, type = 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
 
   useEffect(() => {
     loadUserProfile();
@@ -33,10 +46,12 @@ const ProfileScreen = ({ navigation }) => {
         setUserProfile(result.data);
       } else {
         setError(result.error || 'Erro ao carregar perfil');
+        showToast(result.error || 'Erro ao carregar perfil', 'error');
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
       setError('Erro de conexão. Verifique sua internet.');
+      showToast('Erro de conexão. Verifique sua internet.', 'error');
     } finally {
       setLoading(false);
     }
@@ -56,11 +71,17 @@ const ProfileScreen = ({ navigation }) => {
           onPress: async () => {
             try {
               await logout();
-              if (navigation) {
-                navigation.navigate('Login');
-              }
+              showToast('Logout realizado com sucesso!', 'success');
+              setTimeout(() => {
+                if (navigation) {
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Login' }],
+                  });
+                }
+              }, 1000);
             } catch (error) {
-              Alert.alert('Erro', 'Erro ao fazer logout');
+              showToast('Erro ao fazer logout', 'error');
             }
           },
         },
@@ -132,6 +153,13 @@ const ProfileScreen = ({ navigation }) => {
           style={styles.logoutButton}
         />
       </ScrollView>
+
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={hideToast}
+      />
     </View>
   );
 };
