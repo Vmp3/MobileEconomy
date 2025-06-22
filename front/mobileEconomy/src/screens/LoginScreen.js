@@ -10,12 +10,20 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Input, Button, Toast } from '../components';
-import { useLoginForm } from '../hooks/useLoginForm';
+import { useAuth } from '../hooks/useAuth';
 
 const LoginScreen = ({ navigation }) => {
+  const [formData, setFormData] = useState({
+    email: '',
+    senha: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('error');
+
+  const { login } = useAuth();
 
   const showToast = (message, type = 'error') => {
     setToastMessage(message);
@@ -27,24 +35,82 @@ const LoginScreen = ({ navigation }) => {
     setToastVisible(false);
   };
 
-  const { formData, errors, loading, updateField, handleSubmit } = useLoginForm(
-    (response) => {
-      showToast('Login realizado com sucesso!', 'success');
-      
-      // Redirecionar para Home após um pequeno delay para mostrar o toast
-      setTimeout(() => {
-        if (navigation) {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Main' }],
-          });
-        }
-      }, 1000);
-    },
-    (error) => {
-      showToast(error.message || 'Erro ao fazer login. Tente novamente.');
+  const updateField = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Limpar erro do campo quando o usuário começar a digitar
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
     }
-  );
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email é obrigatório';
+    } else if (!emailRegex.test(formData.email.trim())) {
+      newErrors.email = 'Email inválido';
+    }
+
+    // Validar senha
+    if (!formData.senha) {
+      newErrors.senha = 'Senha é obrigatória';
+    } else if (formData.senha.length < 6) {
+      newErrors.senha = 'Senha deve ter pelo menos 6 caracteres';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const credentials = {
+        email: formData.email.trim().toLowerCase(),
+        senha: formData.senha
+      };
+
+      const result = await login(credentials);
+
+      if (result.success) {
+        showToast('Login realizado com sucesso!', 'success');
+        // Limpar formulário
+        setFormData({
+          email: '',
+          senha: ''
+        });
+        setErrors({});
+        // O AuthProvider/useAuth agora gerencia a navegação automaticamente via contexto
+        // Não é necessário navegar manualmente
+      } else {
+        const errorMessage = result.error || 'Erro ao fazer login. Tente novamente.';
+        setErrors({ general: errorMessage });
+        showToast(errorMessage);
+      }
+    } catch (error) {
+      console.error('Erro inesperado no login:', error);
+      const errorMessage = error.message || 'Erro inesperado. Tente novamente.';
+      setErrors({ general: errorMessage });
+      showToast(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignupPress = () => {
     if (navigation) {

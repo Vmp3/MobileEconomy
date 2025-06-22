@@ -9,20 +9,18 @@ import { hasStoredToken } from '../config/api';
 
 const AppNavigator = () => {
   const [currentScreen, setCurrentScreen] = useState('Loading');
-  const { isAuthenticated, isLoading, logout, checkAuthStatus } = useAuth();
+  const { isAuthenticated, isLoading, logout } = useAuth();
 
-  // Verificar autenticação ao iniciar o app
+  // Verificar autenticação ao iniciar o app (apenas uma vez)
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Verificar se há token armazenado
+        // Verificar se há token armazenado apenas uma vez
         const hasToken = await hasStoredToken();
         
         if (hasToken) {
-          // Se houver token, navegar para a tela principal
           setCurrentScreen('Main');
         } else {
-          // Se não houver token, navegar para login
           setCurrentScreen('Login');
         }
       } catch (error) {
@@ -31,20 +29,28 @@ const AppNavigator = () => {
       }
     };
 
-    checkAuth();
-  }, []);
+    // Executar apenas uma vez na inicialização
+    if (currentScreen === 'Loading') {
+      checkAuth();
+    }
+  }, []); // Array vazio para executar apenas uma vez
 
   // Atualizar tela quando o status de autenticação mudar
   useEffect(() => {
+    console.log(`AppNavigator useEffect: isLoading=${isLoading}, isAuthenticated=${isAuthenticated}, currentScreen=${currentScreen}`);
+    
     if (!isLoading) {
-      if (isAuthenticated) {
+      if (isAuthenticated && currentScreen !== 'Main') {
+        console.log('Usuário autenticado, navegando para Main');
         setCurrentScreen('Main');
-      } else if (currentScreen === 'Main') {
-        // Só redirecionar para login se estiver na tela principal
+      } else if (!isAuthenticated && currentScreen !== 'Login' && currentScreen !== 'Signup') {
+        console.log('Usuário não autenticado, navegando para Login'); 
         setCurrentScreen('Login');
+      } else {
+        console.log('Nenhuma navegação necessária');
       }
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, currentScreen]);
 
   // Configurar callback global para logout automático
   useEffect(() => {
@@ -63,6 +69,13 @@ const AppNavigator = () => {
   const navigation = {
     navigate: (screenName) => {
       setCurrentScreen(screenName);
+    },
+    reset: (resetConfig) => {
+      // Para compatibilidade com navigation.reset do React Navigation
+      if (resetConfig && resetConfig.routes && resetConfig.routes.length > 0) {
+        const targetScreen = resetConfig.routes[resetConfig.index || 0].name;
+        setCurrentScreen(targetScreen);
+      }
     },
   };
 

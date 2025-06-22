@@ -171,85 +171,91 @@ const ExpenseScreen = ({ navigation }) => {
     <View style={styles.container}>
       <StatusBar style="dark" />
       
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.cardTitle}>Despesa</Text>
+      <FlatList
+        data={despesas}
+        renderItem={renderDespesaItem}
+        keyExtractor={(item, index) => `${item.id || item.descricao}-${index}`}
+        showsVerticalScrollIndicator={false}
+        style={styles.flatListContainer}
+        contentContainerStyle={styles.scrollContent}
+        ListHeaderComponent={
+          <>
+            <Text style={styles.cardTitle}>Despesa</Text>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Descrição</Text>
-          <Input
-            value={descricao}
-            onChangeText={setDescricao}
-            placeholder=""
-            style={styles.input}
-          />
-        </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Descrição</Text>
+              <Input
+                value={descricao}
+                onChangeText={setDescricao}
+                placeholder=""
+                style={styles.input}
+              />
+            </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Valor</Text>
-          <Input
-            value={valor}
-            onChangeText={setValor}
-            placeholder=""
-            keyboardType="numeric"
-            style={styles.input}
-          />
-        </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Valor</Text>
+              <Input
+                value={valor}
+                onChangeText={setValor}
+                placeholder=""
+                keyboardType="numeric"
+                style={styles.input}
+              />
+            </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Mês</Text>
-          <TouchableOpacity
-            style={styles.monthButton}
-            onPress={() => setShowMonthSelector(true)}
-          >
-            <Text style={styles.monthButtonText}>
-              {selectedMonthLabel} ▼
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Mês</Text>
+              <TouchableOpacity
+                style={styles.monthButton}
+                onPress={() => setShowMonthSelector(true)}
+              >
+                <Text style={styles.monthButtonText}>
+                  {selectedMonthLabel} ▼
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-        <Button
-          title="SALVAR"
-          onPress={handleSaveDespesa}
-          loading={loading}
-          style={styles.saveButton}
-        />
+            <Button
+              title="SALVAR"
+              onPress={handleSaveDespesa}
+              loading={loading}
+              style={styles.saveButton}
+            />
 
-        {/* Seção de histórico */}
-        <Text style={styles.historyTitle}>Histórico</Text>
-        
-        <TouchableOpacity
-          style={styles.monthButton}
-          onPress={() => setShowHistorySelector(true)}
-        >
-          <Text style={styles.monthButtonText}>
-            {historyMonthLabel} ▼
-          </Text>
-        </TouchableOpacity>
-
-        {loadingData ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Carregando despesas...</Text>
-          </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>⚠️ {error}</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={loadDespesas}>
-              <Text style={styles.retryButtonText}>Tentar novamente</Text>
+            {/* Seção de histórico */}
+            <Text style={styles.historyTitle}>Histórico</Text>
+            
+            <TouchableOpacity
+              style={styles.monthButton}
+              onPress={() => setShowHistorySelector(true)}
+            >
+              <Text style={styles.monthButtonText}>
+                {historyMonthLabel} ▼
+              </Text>
             </TouchableOpacity>
-          </View>
-        ) : (
-          <FlatList
-            data={despesas}
-            renderItem={renderDespesaItem}
-            keyExtractor={(item, index) => `${item.id || item.descricao}-${index}`}
-            showsVerticalScrollIndicator={false}
-            style={styles.despesasList}
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>Nenhuma despesa encontrada</Text>
-            }
-          />
-        )}
-      </ScrollView>
+
+            {loadingData && (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Carregando despesas...</Text>
+              </View>
+            )}
+
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>⚠️ {error}</Text>
+                <TouchableOpacity style={styles.retryButton} onPress={loadDespesas}>
+                  <Text style={styles.retryButtonText}>Tentar novamente</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </>
+        }
+        ListEmptyComponent={
+          !loadingData && !error ? (
+            <Text style={styles.emptyText}>Nenhuma despesa encontrada</Text>
+          ) : null
+        }
+      />
 
       {/* Modal de seleção de mês para cadastro */}
       <MonthSelector
@@ -410,6 +416,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '600',
+  },
+  flatListContainer: {
+    flex: 1,
   },
 });
 

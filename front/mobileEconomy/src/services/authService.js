@@ -28,7 +28,10 @@ export const authService = {
       // Salvar token e dados do usuário no AsyncStorage
       if (response.data.token) {
         await AsyncStorage.setItem('token', response.data.token);
-        await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        // Só salvar user se ele existir na resposta
+        if (response.data.user) {
+          await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        }
       }
 
       return {
@@ -79,10 +82,26 @@ export const authService = {
 
       console.log('Resposta do servidor:', response.data);
 
-      // Salvar token e dados do usuário no AsyncStorage
+      // Salvar token
       if (response.data.token) {
         await AsyncStorage.setItem('token', response.data.token);
-        await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // Se os dados do usuário não vieram na resposta, buscar o perfil
+        if (response.data.user) {
+          await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        } else {
+          console.log('Dados do usuário não encontrados na resposta, buscando perfil...');
+          try {
+            const profileResult = await this.getUserProfile();
+            if (profileResult.success && profileResult.data) {
+              await AsyncStorage.setItem('user', JSON.stringify(profileResult.data));
+              // Adicionar dados do usuário à resposta
+              response.data.user = profileResult.data;
+            }
+          } catch (profileError) {
+            console.warn('Não foi possível buscar perfil do usuário:', profileError);
+          }
+        }
       }
 
       return {
