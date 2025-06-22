@@ -12,6 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { despesaService } from '../services/despesaService';
 import { limiteService } from '../services/limiteService';
 import { getCurrentMonth, getMonthLabel } from '../utils/dateUtils';
+import { formatCurrency, formatCurrencyWithPrefix } from '../utils/formatUtils';
 
 const NewHomeScreen = ({ navigation }) => {
   const currentMonth = getCurrentMonth();
@@ -146,11 +147,11 @@ const NewHomeScreen = ({ navigation }) => {
       return {
         emoji: "😓",
         message: "Objetivo não atingido",
-        secondaryMessage: `-R$${diferenca.toFixed(0)}`,
+        secondaryMessage: `-${formatCurrency(diferenca)}`,
         color: "#4CAF50",
         showProgress: true,
         progressText: "Progresso",
-        valueText: `R$${totalDespesas.toFixed(0)}/R$${limiteValor.toFixed(0)}`
+        valueText: `${formatCurrencyWithPrefix(totalDespesas)}/${formatCurrencyWithPrefix(limiteValor)}`
       };
     }
     
@@ -160,11 +161,11 @@ const NewHomeScreen = ({ navigation }) => {
       return {
         emoji: "🤩",
         message: "Parabéns você economizou",
-        secondaryMessage: `R$${economia.toFixed(0)}`,
+        secondaryMessage: `${formatCurrency(economia)}`,
         color: "#4CAF50",
         showProgress: true,
         progressText: "Progresso",
-        valueText: `R$${totalDespesas.toFixed(0)}/R$${limiteValor.toFixed(0)}`
+        valueText: `${formatCurrencyWithPrefix(totalDespesas)}/${formatCurrencyWithPrefix(limiteValor)}`
       };
     }
     
@@ -175,7 +176,7 @@ const NewHomeScreen = ({ navigation }) => {
       color: "#4CAF50",
       showProgress: false,
       progressText: "",
-      valueText: `Total: R$${totalDespesas.toFixed(0)}`
+      valueText: `Total: ${formatCurrencyWithPrefix(totalDespesas)}`
     };
   };
 

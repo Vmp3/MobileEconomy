@@ -11,7 +11,8 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Input, Button, MonthSelector, LoadingCard, ErrorCard, Toast } from '../components';
 import { despesaService } from '../services/despesaService';
-import { getCurrentMonth, getMonthLabel, parseCurrencyInput, formatCurrency } from '../utils/dateUtils';
+import { getCurrentMonth, getMonthLabel } from '../utils/dateUtils';
+import { formatCurrency, parseCurrency, isValidCurrency } from '../utils/formatUtils';
 
 const ExpenseScreen = ({ navigation }) => {
   const currentMonth = getCurrentMonth();
@@ -67,19 +68,22 @@ const ExpenseScreen = ({ navigation }) => {
   };
 
   const handleSaveDespesa = async () => {
-    if (!descricao.trim() || !valor.trim()) {
-      showToast('Preencha todos os campos', 'error');
+    // Validar descrição
+    if (!descricao.trim()) {
+      showToast('Descrição é obrigatória', 'error');
       return;
     }
 
-    const valorNumber = parseCurrencyInput(valor);
-    if (valorNumber <= 0) {
+    // Validar valor monetário
+    if (!isValidCurrency(valor)) {
       showToast('Valor deve ser um número positivo', 'error');
       return;
     }
 
     setLoading(true);
     try {
+      const valorNumber = parseCurrency(valor);
+      
       const result = await despesaService.createDespesa({
         descricao: descricao.trim(),
         valor: valorNumber,
@@ -198,7 +202,7 @@ const ExpenseScreen = ({ navigation }) => {
                 value={valor}
                 onChangeText={setValor}
                 placeholder=""
-                keyboardType="numeric"
+                type="currency"
                 style={styles.input}
               />
             </View>

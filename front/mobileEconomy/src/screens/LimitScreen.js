@@ -11,7 +11,8 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Input, Button, MonthSelector, LoadingCard, ErrorCard, Toast } from '../components';
 import { limiteService } from '../services/limiteService';
-import { getCurrentMonth, getMonthLabel, parseCurrencyInput, formatCurrency } from '../utils/dateUtils';
+import { getCurrentMonth, getMonthLabel } from '../utils/dateUtils';
+import { formatCurrency, formatCurrencyWithPrefix, parseCurrency, isValidCurrency } from '../utils/formatUtils';
 
 const LimitScreen = ({ navigation }) => {
   const currentMonth = getCurrentMonth();
@@ -113,19 +114,16 @@ const LimitScreen = ({ navigation }) => {
   };
 
   const handleSaveLimite = async () => {
-    if (!valor.trim()) {
-      showToast('Preencha o valor do limite', 'error');
-      return;
-    }
-
-    const valorNumber = parseCurrencyInput(valor);
-    if (valorNumber <= 0) {
+    // Validar valor monetário
+    if (!isValidCurrency(valor)) {
       showToast('Valor deve ser um número positivo', 'error');
       return;
     }
 
     setLoading(true);
     try {
+      const valorNumber = parseCurrency(valor);
+      
       let result;
       
       if (editMode && editId) {
@@ -190,7 +188,7 @@ const LimitScreen = ({ navigation }) => {
 
     Alert.alert(
       'Confirmar exclusão',
-      `Deseja excluir o limite de R$${currentLimit.valor?.toFixed(2).replace('.', ',')} do mês ${consultaMonthLabel}?`,
+      `Deseja excluir o limite de ${formatCurrencyWithPrefix(currentLimit.valor)} do mês ${consultaMonthLabel}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -250,7 +248,7 @@ const LimitScreen = ({ navigation }) => {
             value={valor}
             onChangeText={setValor}
             placeholder=""
-            keyboardType="numeric"
+            type="currency"
             style={styles.input}
           />
         </View>
@@ -314,7 +312,7 @@ const LimitScreen = ({ navigation }) => {
           <View style={styles.limitDisplayContainer}>
             <View style={styles.limitDisplay}>
               <Text style={styles.limitValue}>
-                {consultaMonthLabel}    {formatCurrency(currentLimit.valor || 0)}
+                {consultaMonthLabel}    {formatCurrencyWithPrefix(currentLimit.valor || 0)}
               </Text>
             </View>
             

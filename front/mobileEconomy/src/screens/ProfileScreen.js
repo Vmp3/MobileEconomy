@@ -70,17 +70,16 @@ const ProfileScreen = ({ navigation }) => {
           text: 'Sair',
           onPress: async () => {
             try {
-              await logout();
-              showToast('Logout realizado com sucesso!', 'success');
-              setTimeout(() => {
-                if (navigation) {
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Login' }],
-                  });
-                }
-              }, 1000);
+              const result = await logout();
+              if (result.success) {
+                showToast('Logout realizado com sucesso!', 'success');
+                // O AuthProvider automaticamente redirecionará para Login
+                // quando isAuthenticated mudar para false
+              } else {
+                showToast('Erro ao fazer logout', 'error');
+              }
             } catch (error) {
+              console.error('Erro no logout:', error);
               showToast('Erro ao fazer logout', 'error');
             }
           },

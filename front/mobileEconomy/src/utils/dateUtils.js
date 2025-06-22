@@ -112,32 +112,6 @@ export const formatDateFromBackend = (backendDate) => {
 };
 
 /**
- * Formatar valor monetário para exibição
- * @param {number} value - Valor numérico
- * @returns {string} - Valor formatado como R$ X,XX
- */
-export const formatCurrency = (value) => {
-  if (typeof value !== 'number') return 'R$ 0,00';
-  
-  return `R$ ${value.toFixed(2).replace('.', ',')}`;
-};
-
-/**
- * Parse valor monetário do input para número
- * @param {string} input - Valor digitado pelo usuário
- * @returns {number} - Valor numérico
- */
-export const parseCurrencyInput = (input) => {
-  if (!input) return 0;
-  
-  // Remove espaços e substitui vírgula por ponto
-  const cleaned = input.trim().replace(',', '.');
-  const parsed = parseFloat(cleaned);
-  
-  return isNaN(parsed) ? 0 : parsed;
-};
-
-/**
  * Obter label do mês no formato "Mês/Ano"
  * @param {string} monthValue - Valor no formato "YYYY-MM"
  * @returns {string} - Label formatado

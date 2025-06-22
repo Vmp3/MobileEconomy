@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { formatCurrency, formatCurrencyWithPrefix } from '../utils/formatUtils';
 
 const ProgressBar = ({ current, total, label }) => {
   const percentage = total > 0 ? (current / total) * 100 : 0;
@@ -29,15 +30,15 @@ const ProgressBar = ({ current, total, label }) => {
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.currentText}>
-          R${current.toFixed(2).replace('.', ',')}
+          {formatCurrencyWithPrefix(current)}
         </Text>
         <Text style={styles.totalText}>
-          /R${total.toFixed(2).replace('.', ',')}
+          /{formatCurrencyWithPrefix(total)}
         </Text>
       </View>
       {isOverLimit && (
         <Text style={styles.warningText}>
-          Limite excedido em R${(current - total).toFixed(2).replace('.', ',')}
+          Limite excedido em {formatCurrencyWithPrefix(current - total)}
         </Text>
       )}
     </View>
