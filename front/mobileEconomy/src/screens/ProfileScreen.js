@@ -6,7 +6,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+
 import { Button, LoadingCard, ErrorCard, Toast } from '../components';
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
@@ -114,8 +114,6 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
-      
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {error && (
           <View style={styles.warningCard}>

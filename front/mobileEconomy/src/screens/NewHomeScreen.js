@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   LinearGradient,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+
 import { Header, MonthSelector, ProgressBar, LoadingCard, ErrorCard } from '../components';
 import { useAuth } from '../hooks/useAuth';
 import { despesaService } from '../services/despesaService';
@@ -207,8 +207,6 @@ const NewHomeScreen = ({ navigation, onNavigateToTab }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
-      
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.greetingText}>
           {getGreeting()} {firstName} {firstName ? '👋' : ''}

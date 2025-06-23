@@ -13,7 +13,8 @@ func SetupDespesaRoutes(app *fiber.App, despesaController *controllers.DespesaCo
 
 	despesaRoutes.Post("/despesa", despesaController.CreateDespesa)
 	despesaRoutes.Get("/despesa/mes/:mesReferencia", despesaController.GetDespesasByMonth)
+	despesaRoutes.Get("/despesa/:id", despesaController.GetDespesaById)
 	despesaRoutes.Get("/despesas", despesaController.GetDespesasByUser)
 	despesaRoutes.Put("/despesa/:id", despesaController.UpdateDespesa)
 	despesaRoutes.Delete("/despesa/:id", despesaController.DeleteDespesa)
-} 
+}

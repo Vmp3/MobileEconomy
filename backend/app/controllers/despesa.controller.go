@@ -66,6 +66,24 @@ func (c *DespesaController) GetDespesasByMonth(ctx *fiber.Ctx) error {
 	return ctx.JSON(despesas)
 }
 
+// GET /api/despesa/:id
+func (c *DespesaController) GetDespesaById(ctx *fiber.Ctx) error {
+	userID := ctx.Locals("userID").(uint)
+
+	idParam := ctx.Params("id")
+	despesaID, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": "ID inválido"})
+	}
+
+	despesa, err := c.despesaService.GetDespesaById(userID, uint(despesaID))
+	if err != nil {
+		return ctx.Status(404).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(despesa)
+}
+
 // GET /api/despesas
 func (c *DespesaController) GetDespesasByUser(ctx *fiber.Ctx) error {
 	userID := ctx.Locals("userID").(uint)
@@ -112,7 +130,7 @@ func (c *DespesaController) UpdateDespesa(ctx *fiber.Ctx) error {
 
 	return ctx.Status(200).JSON(fiber.Map{
 		"message": "Despesa atualizada com sucesso",
-		"data": despesa,
+		"data":    despesa,
 	})
 }
 
@@ -131,4 +149,4 @@ func (c *DespesaController) DeleteDespesa(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(200).JSON(fiber.Map{"message": "Despesa excluída com sucesso"})
-} 
+}

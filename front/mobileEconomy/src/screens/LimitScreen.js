@@ -8,7 +8,7 @@ import {
   Alert,
   FlatList,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+
 import { Input, Button, MonthSelector, LoadingCard, ErrorCard, Toast } from '../components';
 import { limiteService } from '../services/limiteService';
 import { getCurrentMonth, getMonthLabel } from '../utils/dateUtils';
@@ -237,8 +237,6 @@ const LimitScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
-      
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.cardTitle}>Limite</Text>
 

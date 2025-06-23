@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -83,10 +83,10 @@ const AppNavigator = () => {
     // Tela de carregamento inicial
     if (currentScreen === 'Loading' || (isLoading && isAuthenticated)) {
       return (
-        <View style={styles.loadingContainer}>
+        <SafeAreaView style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#ffffff" />
           <Text style={styles.loadingText}>Carregando...</Text>
-        </View>
+        </SafeAreaView>
       );
     }
 

@@ -75,6 +75,7 @@ func (s *DespesaService) CreateDespesa(userID uint, req *types.CreateDespesaRequ
 	}
 
 	return &types.DespesaSimpleResponse{
+		ID:            despesa.ID,
 		Descricao:     despesa.Descricao,
 		Valor:         despesa.Valor,
 		MesReferencia: formatMonthYearDespesa(despesa.MesReferencia),
@@ -105,6 +106,23 @@ func (s *DespesaService) GetDespesasByMonth(userID uint, monthYear string) ([]ty
 	return response, nil
 }
 
+func (s *DespesaService) GetDespesaById(userID uint, despesaID uint) (*types.DespesaSimpleResponse, error) {
+	despesa, err := s.despesaDAL.GetDespesaByID(despesaID, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("despesa não encontrada")
+		}
+		return nil, err
+	}
+
+	return &types.DespesaSimpleResponse{
+		ID:            despesa.ID,
+		Descricao:     despesa.Descricao,
+		Valor:         despesa.Valor,
+		MesReferencia: formatMonthYearDespesa(despesa.MesReferencia),
+	}, nil
+}
+
 func (s *DespesaService) GetDespesasByUser(userID uint) ([]types.DespesaSimpleResponse, error) {
 	despesas, err := s.despesaDAL.GetDespesasByUser(userID)
 	if err != nil {
@@ -114,6 +132,7 @@ func (s *DespesaService) GetDespesasByUser(userID uint) ([]types.DespesaSimpleRe
 	var response []types.DespesaSimpleResponse
 	for _, despesa := range despesas {
 		response = append(response, types.DespesaSimpleResponse{
+			ID:            despesa.ID,
 			Descricao:     despesa.Descricao,
 			Valor:         despesa.Valor,
 			MesReferencia: formatMonthYearDespesa(despesa.MesReferencia),
@@ -165,4 +184,4 @@ func (s *DespesaService) DeleteDespesa(userID uint, despesaID uint) error {
 	}
 
 	return s.despesaDAL.DeleteDespesa(despesaID, userID)
-} 
+}

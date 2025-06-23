@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { BottomNavigation } from '../components';
 import NewHomeScreen from './NewHomeScreen';
@@ -30,7 +30,7 @@ const MainScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       
       {/* Conteúdo da tela ativa */}
@@ -43,7 +43,7 @@ const MainScreen = ({ navigation }) => {
         activeScreen={activeScreen}
         onNavigate={handleNavigate}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

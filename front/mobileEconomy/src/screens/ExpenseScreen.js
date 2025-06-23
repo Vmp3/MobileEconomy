@@ -8,7 +8,7 @@ import {
   Alert,
   FlatList,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+
 import { Input, Button, MonthSelector, LoadingCard, ErrorCard, Toast } from '../components';
 import { despesaService } from '../services/despesaService';
 import { getCurrentMonth, getMonthLabel } from '../utils/dateUtils';
@@ -31,6 +31,8 @@ const ExpenseScreen = ({ navigation }) => {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('error');
+  const [editMode, setEditMode] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   const showToast = (message, type = 'error') => {
     setToastMessage(message);
@@ -84,16 +86,33 @@ const ExpenseScreen = ({ navigation }) => {
     try {
       const valorNumber = parseCurrency(valor);
       
-      const result = await despesaService.createDespesa({
-        descricao: descricao.trim(),
-        valor: valorNumber,
-        mesReferencia: selectedMonth,
-      });
+      let result;
+      
+      if (editMode && editId) {
+        // Modo de edição
+        console.log('Atualizando despesa com ID:', editId);
+        result = await despesaService.updateDespesa(editId, {
+          descricao: descricao.trim(),
+          valor: valorNumber,
+          mesReferencia: selectedMonth,
+        });
+      } else {
+        // Modo de criação
+        console.log('Criando nova despesa');
+        result = await despesaService.createDespesa({
+          descricao: descricao.trim(),
+          valor: valorNumber,
+          mesReferencia: selectedMonth,
+        });
+      }
 
       if (result.success) {
-        showToast('Despesa salva com sucesso!', 'success');
+        const message = editMode ? 'Despesa atualizada com sucesso!' : 'Despesa salva com sucesso!';
+        showToast(message, 'success');
         setDescricao('');
         setValor('');
+        setEditMode(false);
+        setEditId(null);
         // Recarregar lista se estiver no mesmo mês
         if (selectedMonth === historyMonth) {
           loadDespesas();
@@ -139,6 +158,23 @@ const ExpenseScreen = ({ navigation }) => {
     );
   };
 
+  const handleEditDespesa = (item) => {
+    if (!item.id) {
+      showToast('ID da despesa não encontrado. O backend precisa retornar IDs nas respostas.', 'error');
+      return;
+    }
+    
+    console.log('Editando despesa com ID:', item.id);
+    setEditMode(true);
+    setEditId(item.id);
+    setDescricao(item.descricao);
+    setValor(formatCurrency(item.valor || 0));
+    setSelectedMonth(item.mesReferencia || selectedMonth);
+    // Encontrar o label correspondente
+    const monthLabel = getMonthLabel(item.mesReferencia);
+    setSelectedMonthLabel(monthLabel);
+  };
+
   const renderDespesaItem = ({ item, index }) => (
     <View style={styles.despesaItem}>
       <View style={styles.despesaInfo}>
@@ -150,14 +186,7 @@ const ExpenseScreen = ({ navigation }) => {
       <View style={styles.despesaActions}>
         <TouchableOpacity
           style={styles.editButton}
-          onPress={() => {
-            if (item.id) {
-              // Implementar edição quando o backend retornar IDs
-              showToast('Função de editar em desenvolvimento.', 'error');
-            } else {
-              showToast('ID da despesa não encontrado. O backend precisa retornar IDs nas respostas.', 'error');
-            }
-          }}
+          onPress={() => handleEditDespesa(item)}
         >
           <Text style={styles.actionButtonText}>✏️</Text>
         </TouchableOpacity>
@@ -173,8 +202,6 @@ const ExpenseScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
-      
       <FlatList
         data={despesas}
         renderItem={renderDespesaItem}
@@ -220,11 +247,25 @@ const ExpenseScreen = ({ navigation }) => {
             </View>
 
             <Button
-              title="SALVAR"
+              title={editMode ? "ATUALIZAR" : "SALVAR"}
               onPress={handleSaveDespesa}
               loading={loading}
               style={styles.saveButton}
             />
+
+            {editMode && (
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setEditMode(false);
+                  setEditId(null);
+                  setDescricao('');
+                  setValor('');
+                }}
+              >
+                <Text style={styles.cancelButtonText}>CANCELAR EDIÇÃO</Text>
+              </TouchableOpacity>
+            )}
 
             {/* Seção de histórico */}
             <Text style={styles.historyTitle}>Histórico</Text>
@@ -423,6 +464,17 @@ const styles = StyleSheet.create({
   },
   flatListContainer: {
     flex: 1,
+  },
+  cancelButton: {
+    marginTop: 10,
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#d32f2f',
+    fontWeight: '600',
   },
 });
 
