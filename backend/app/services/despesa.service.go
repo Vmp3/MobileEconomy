@@ -95,6 +95,7 @@ func (s *DespesaService) GetDespesasByMonth(userID uint, monthYear string) ([]ty
 	var response []types.DespesaSimpleResponse
 	for _, despesa := range despesas {
 		response = append(response, types.DespesaSimpleResponse{
+			ID:            despesa.ID,
 			Descricao:     despesa.Descricao,
 			Valor:         despesa.Valor,
 			MesReferencia: formatMonthYearDespesa(despesa.MesReferencia),
@@ -143,6 +144,7 @@ func (s *DespesaService) UpdateDespesa(userID uint, despesaID uint, req *types.U
 	}
 
 	return &types.DespesaSimpleResponse{
+		ID:            despesa.ID,
 		Descricao:     despesa.Descricao,
 		Valor:         despesa.Valor,
 		MesReferencia: formatMonthYearDespesa(despesa.MesReferencia),

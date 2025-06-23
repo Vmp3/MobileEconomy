@@ -26,6 +26,7 @@ type UpdateDespesaRequest struct {
 }
 
 type DespesaSimpleResponse struct {
+	ID            uint    `json:"id"`
 	Descricao     string  `json:"descricao"`
 	Valor         float64 `json:"valor"`
 	MesReferencia string  `json:"mesReferencia"`
