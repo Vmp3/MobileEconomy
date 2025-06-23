@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,35 +7,114 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Input, Button } from '../components';
-import { useLoginForm } from '../hooks/useLoginForm';
+import { Input, Button, Toast } from '../components';
+import { useAuth } from '../hooks/useAuth';
 
 const LoginScreen = ({ navigation }) => {
-  const { formData, errors, loading, updateField, handleSubmit } = useLoginForm(
-    (response) => {
-      Alert.alert('Sucesso', 'Login realizado com sucesso!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            if (navigation) {
-              navigation.navigate('Home');
-            } else {
-              console.log('Login successful:', response);
-            }
-          },
-        },
-      ]);
+  const [formData, setFormData] = useState({
+    email: '',
+    senha: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
+
+  const { login } = useAuth();
+
+  const showToast = (message, type = 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
+
+  const updateField = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Limpar erro do campo quando o usuário começar a digitar
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
     }
-  );
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email é obrigatório';
+    } else if (!emailRegex.test(formData.email.trim())) {
+      newErrors.email = 'Email inválido';
+    }
+
+    // Validar senha
+    if (!formData.senha) {
+      newErrors.senha = 'Senha é obrigatória';
+    } else if (formData.senha.length < 6) {
+      newErrors.senha = 'Senha deve ter pelo menos 6 caracteres';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const credentials = {
+        email: formData.email.trim().toLowerCase(),
+        senha: formData.senha
+      };
+
+      const result = await login(credentials);
+
+      if (result.success) {
+        showToast('Login realizado com sucesso!', 'success');
+        // Limpar formulário
+        setFormData({
+          email: '',
+          senha: ''
+        });
+        setErrors({});
+        // O AuthProvider/useAuth agora gerencia a navegação automaticamente via contexto
+        // Não é necessário navegar manualmente
+      } else {
+        const errorMessage = result.error || 'Erro ao fazer login. Tente novamente.';
+        setErrors({ general: errorMessage });
+        showToast(errorMessage);
+      }
+    } catch (error) {
+      console.error('Erro inesperado no login:', error);
+      const errorMessage = error.message || 'Erro inesperado. Tente novamente.';
+      setErrors({ general: errorMessage });
+      showToast(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignupPress = () => {
     if (navigation) {
       navigation.navigate('Signup');
-    } else {
-      console.log('Navigate to signup');
     }
   };
 
@@ -50,7 +129,7 @@ const LoginScreen = ({ navigation }) => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.formContainer}>
+        <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.title}>ENTRAR</Text>
           </View>
@@ -75,12 +154,6 @@ const LoginScreen = ({ navigation }) => {
               error={errors.senha}
             />
 
-            {errors.general && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{errors.general}</Text>
-              </View>
-            )}
-
             <Button
               title="Entrar"
               onPress={handleSubmit}
@@ -99,6 +172,13 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
+      
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={hideToast}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -111,11 +191,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
-  formContainer: {
+  content: {
+    flex: 1,
+    justifyContent: 'center',
     backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginVertical: 40,
     borderRadius: 16,
     paddingHorizontal: 32,
     paddingVertical: 48,
@@ -152,19 +234,6 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontSize: 14,
     fontWeight: '500',
-  },
-  errorContainer: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#ffebee',
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#e74c3c',
-  },
-  errorText: {
-    color: '#e74c3c',
-    fontSize: 14,
-    textAlign: 'center',
   },
 });
 

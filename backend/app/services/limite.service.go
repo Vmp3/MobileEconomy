@@ -82,6 +82,7 @@ func (s *LimiteService) CreateLimite(userID uint, req *types.CreateLimiteRequest
 	}
 
 	return &types.LimiteSimpleResponse{
+		ID:            limite.ID,
 		Valor:         limite.Valor,
 		MesReferencia: formatMonthYear(limite.MesReferencia),
 	}, nil
@@ -102,6 +103,7 @@ func (s *LimiteService) GetLimiteByMonth(userID uint, monthYear string) (*types.
 	}
 
 	return &types.LimiteSimpleResponse{
+		ID:            limite.ID,
 		Valor:         limite.Valor,
 		MesReferencia: formatMonthYear(limite.MesReferencia),
 	}, nil
@@ -116,6 +118,7 @@ func (s *LimiteService) GetLimitesByUser(userID uint) ([]types.LimiteSimpleRespo
 	var response []types.LimiteSimpleResponse
 	for _, limite := range limites {
 		response = append(response, types.LimiteSimpleResponse{
+			ID:            limite.ID,
 			Valor:         limite.Valor,
 			MesReferencia: formatMonthYear(limite.MesReferencia),
 		})
@@ -144,6 +147,7 @@ func (s *LimiteService) UpdateLimite(userID uint, limiteID uint, req *types.Upda
 	}
 
 	return &types.LimiteSimpleResponse{
+		ID:            limite.ID,
 		Valor:         limite.Valor,
 		MesReferencia: formatMonthYear(limite.MesReferencia),
 	}, nil

@@ -23,6 +23,7 @@ type UpdateLimiteRequest struct {
 }
 
 type LimiteSimpleResponse struct {
+	ID            uint    `json:"id"`
 	Valor         float64 `json:"valor"`
 	MesReferencia string  `json:"mesReferencia"`
 } 

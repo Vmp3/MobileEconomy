@@ -1,8 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// URL base da API
-const BASE_URL = 'http://localhost:8080/api';
+import api, { BASE_URL } from '../config/api';
 
 // Verificar se a API está configurada corretamente
 console.log('API configurada:', BASE_URL);
@@ -30,7 +28,10 @@ export const authService = {
       // Salvar token e dados do usuário no AsyncStorage
       if (response.data.token) {
         await AsyncStorage.setItem('token', response.data.token);
-        await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        // Só salvar user se ele existir na resposta
+        if (response.data.user) {
+          await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        }
       }
 
       return {
@@ -81,10 +82,26 @@ export const authService = {
 
       console.log('Resposta do servidor:', response.data);
 
-      // Salvar token e dados do usuário no AsyncStorage
+      // Salvar token
       if (response.data.token) {
         await AsyncStorage.setItem('token', response.data.token);
-        await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // Se os dados do usuário não vieram na resposta, buscar o perfil
+        if (response.data.user) {
+          await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        } else {
+          console.log('Dados do usuário não encontrados na resposta, buscando perfil...');
+          try {
+            const profileResult = await this.getUserProfile();
+            if (profileResult.success && profileResult.data) {
+              await AsyncStorage.setItem('user', JSON.stringify(profileResult.data));
+              // Adicionar dados do usuário à resposta
+              response.data.user = profileResult.data;
+            }
+          } catch (profileError) {
+            console.warn('Não foi possível buscar perfil do usuário:', profileError);
+          }
+        }
       }
 
       return {
@@ -162,6 +179,37 @@ export const authService = {
     } catch (error) {
       console.error('Erro ao obter token:', error);
       return null;
+    }
+  },
+
+  // Buscar perfil do usuário
+  async getUserProfile() {
+    try {
+      const response = await api.get('/auth/profile');
+
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
+      
+      let errorMessage = 'Erro interno do servidor';
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Token inválido ou expirado';
+        } else if (error.response.status === 404) {
+          errorMessage = 'Usuário não encontrado';
+        }
+      } else if (error.request) {
+        errorMessage = 'Erro de conexão';
+      }
+
+      return {
+        success: false,
+        error: errorMessage
+      };
     }
   }
 }; 

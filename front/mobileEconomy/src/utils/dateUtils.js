@@ -82,4 +82,49 @@ export const getCurrentMonth = () => {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}`;
+};
+
+// Utilitários para formatar datas compatíveis com o backend Go
+
+/**
+ * Converte um valor de mês (YYYY-MM) para o formato esperado pelo backend
+ * @param {string} monthValue - Valor no formato "YYYY-MM"
+ * @returns {string} - Valor formatado para o backend
+ */
+export const formatMonthForBackend = (monthValue) => {
+  return monthValue; // Backend espera formato YYYY-MM
+};
+
+/**
+ * Converte resposta do backend para formato do frontend
+ * @param {string} backendDate - Data do backend
+ * @returns {string} - Data formatada para o frontend
+ */
+export const formatDateFromBackend = (backendDate) => {
+  if (!backendDate) return '';
+  
+  // Se for uma data completa, extrair apenas YYYY-MM
+  if (backendDate.includes('T')) {
+    return backendDate.substring(0, 7);
+  }
+  
+  return backendDate;
+};
+
+/**
+ * Obter label do mês no formato "Mês/Ano"
+ * @param {string} monthValue - Valor no formato "YYYY-MM"
+ * @returns {string} - Label formatado
+ */
+export const getMonthLabel = (monthValue) => {
+  if (!monthValue) return '';
+  
+  const [year, month] = monthValue.split('-');
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  
+  const monthIndex = parseInt(month) - 1;
+  return `${monthNames[monthIndex]}/${year}`;
 }; 
