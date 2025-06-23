@@ -17,7 +17,7 @@ const MainScreen = ({ navigation }) => {
   const renderActiveScreen = () => {
     switch (activeScreen) {
       case 'Home':
-        return <NewHomeScreen navigation={navigation} />;
+        return <NewHomeScreen navigation={navigation} onNavigateToTab={handleNavigate} />;
       case 'Profile':
         return <ProfileScreen navigation={navigation} />;
       case 'Expense':
@@ -25,7 +25,7 @@ const MainScreen = ({ navigation }) => {
       case 'Limit':
         return <LimitScreen navigation={navigation} />;
       default:
-        return <NewHomeScreen navigation={navigation} />;
+        return <NewHomeScreen navigation={navigation} onNavigateToTab={handleNavigate} />;
     }
   };
 
