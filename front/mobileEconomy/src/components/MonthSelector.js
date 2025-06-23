@@ -32,8 +32,8 @@ const MonthSelector = ({ visible, onClose, selectedMonth, onSelectMonth }) => {
       });
     }
     
-    // Adicionar meses futuros (3 meses para frente)
-    for (let i = 1; i <= 3; i++) {
+    // Adicionar meses futuros (12 meses para frente)
+    for (let i = 1; i <= 12; i++) {
       let targetMonth = currentMonth + i;
       let targetYear = currentYear;
       
